@@ -26,7 +26,9 @@ THE SOFTWARE
 #ifndef __TAR__
 #define __TAR__
 
+#ifndef _DEFAULT_SOURCE
 #define _DEFAULT_SOURCE
+#endif
 
 #include <errno.h>
 #include <stdarg.h>
@@ -44,6 +46,10 @@ THE SOFTWARE
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define DEFAULT_DIR_MODE S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH // 0755
 
@@ -121,6 +127,7 @@ int tar_ls(FILE * f, struct tar_t * archive, const size_t filecount, const char 
 
 // extracts files from an archive
 int tar_extract(const int fd, struct tar_t * archive, const size_t filecount, const char * files[], const char verbosity);
+int tar_extract_to_memory(const int fd, struct tar_t * archive, const char * name, char ** buf, const char verbosity);
 
 // update files in tar with provided list
 int tar_update(const int fd, struct tar_t ** archive, const size_t filecount, const char * files[], const char verbosity);
@@ -155,6 +162,8 @@ int ls_entry(FILE * f, struct tar_t * archive, unsigned int * max_space, const s
 // extracts a single entry
 // expects file descriptor offset to already be set to correct location
 int extract_entry(const int fd, struct tar_t * entry, const char verbosity);
+int extract_entry_to_memory(const int fd, struct tar_t * entry, char ** buf, const char verbosity);
+
 
 // write entries to a tar file
 int write_entries(const int fd, struct tar_t ** archive, struct tar_t ** head, const size_t filecount, const char * files[], int * offset, const char verbosity);
@@ -166,5 +175,10 @@ int write_end_data(const int fd, int size, const char verbosity);
 // returns index + 1 if match is found
 int check_match(struct tar_t * entry, const size_t filecount, const char * bad, const char * files[]);
 // /////////////////////////////////////////////////////////////////////////////
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

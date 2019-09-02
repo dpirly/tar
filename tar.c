@@ -38,6 +38,7 @@ int tar_read(const int fd, struct tar_t ** archive, const char verbosity){
     char update = 1;
     for(count = 0; ; count++){
         *tar = malloc(sizeof(struct tar_t));
+        memset(*tar, 0, sizeof(struct tar_t));
         if (update && (read_size(fd, (*tar) -> block, 512) != 512)){
             V_PRINT(stderr, "Error: Bad read. Stopping\n");
             tar_free(*tar);
@@ -219,6 +220,23 @@ int tar_extract(const int fd, struct tar_t * archive, const size_t filecount, co
     }
 
     return ret;
+}
+
+int tar_extract_to_memory(const int fd, struct tar_t * archive, const char * name, char ** buf, const char verbosity){
+    // extract entries with given names
+    while (archive){
+        if (!strncmp(archive -> name, name, MAX(strlen(archive -> name), strlen(name)))){
+        
+            if (lseek(fd, archive -> begin, SEEK_SET) == (off_t) (-1)){
+                RC_ERROR(stderr, "Error: Unable to seek file: %s\n", strerror(rc));
+                return -1;
+            }
+
+            return extract_entry_to_memory(fd, archive, buf, verbosity);
+        }
+        archive = archive -> next;
+    }
+    return -1;
 }
 
 int tar_update(const int fd, struct tar_t ** archive, const size_t filecount, const char * files[], const char verbosity){
@@ -624,7 +642,7 @@ int format_tar_data(struct tar_t * entry, const char * filename, const char verb
     // get group name
     struct group * grp = getgrgid(st.st_gid);
     if (grp){
-        strncpy(entry -> group, grp -> gr_name, 100);
+        strncpy(entry -> group, grp -> gr_name, 32);
     }
 
     // get the checksum
@@ -833,6 +851,36 @@ int extract_entry(const int fd, struct tar_t * entry, const char verbosity){
         }
     }
     return 0;
+}
+
+int extract_entry_to_memory(const int fd, struct tar_t * entry, char ** buf, const char verbosity){
+    if ((entry -> type == REGULAR) || (entry -> type == NORMAL) || (entry -> type == CONTIGUOUS)){
+
+        /* malloc memory */
+        const unsigned int size = oct2uint(entry -> size, 11);
+        *buf = (char*)malloc(size+1);/* +1 for for pad zeor */
+        if (*buf == NULL)
+          return -1;
+
+        /* move archive pointer to data location */
+        if (lseek(fd, 512 + entry -> begin, SEEK_SET) == (off_t) (-1)){
+            RC_ERROR(stderr, "Error: Unable to seek file: %s\n", strerror(rc));
+            free(*buf);
+            return -1;
+        }
+
+        /* read data to memory */
+        if (size != read_size(fd, *buf, size)){
+            V_PRINT(stderr, "Error: Read error\n");
+            free(*buf);
+            return -1;
+        }
+        
+        *(*buf+size) = '\0';
+        return size;
+    }
+    
+    return -1;
 }
 
 int write_entries(const int fd, struct tar_t ** archive, struct tar_t ** head, const size_t filecount, const char * files[], int * offset, const char verbosity){
