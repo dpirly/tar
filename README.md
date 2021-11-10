@@ -4,6 +4,8 @@ Copyright (c) 2015 Jason Lee @ calccrypto at gmail.com
 
 Please see LICENSE file for license.
 
+[![Build Status](https://travis-ci.com/calccrypto/tar.svg?branch=master)](https://travis-ci.com/calccrypto/tar)
+
 This is only a simple implementation of the tar file format.
 It can tar files and extract them. That is about it. Although
 there are some other utility functions written, they are a very
@@ -11,7 +13,8 @@ small subset that are provided by GNU Tar. Everything was written
 based on Wikipedia and the observed results of GNU Tar.
 
 This only works on Linux (or Linux-like environment, such as cygwin)
-due to the sheer number of POSIX header files being used.
+due to the sheer number of POSIX header files being used. The minimum
+C standard needed is C99.
 
 The purpose of this is to be a tar library that can be used
 inside other programs, so that programs don't have to call
