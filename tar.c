@@ -229,7 +229,7 @@ int tar_extract_to_memory(const int fd, struct tar_t * archive, const char * nam
         if (!strncmp(archive -> name, name, MAX(strlen(archive -> name), strlen(name)))){
         
             if (lseek(fd, archive -> begin, SEEK_SET) == (off_t) (-1)){
-                RC_ERROR(stderr, "Error: Unable to seek file: %s\n", strerror(rc));
+                RC_ERROR("Error: Unable to seek file: %s\n", strerror(rc));
                 return -1;
             }
 
@@ -850,7 +850,7 @@ int extract_entry_to_memory(const int fd, struct tar_t * entry, char ** buf, con
 
         /* move archive pointer to data location */
         if (lseek(fd, 512 + entry -> begin, SEEK_SET) == (off_t) (-1)){
-            RC_ERROR(stderr, "Error: Unable to seek file: %s\n", strerror(rc));
+            RC_ERROR("Error: Unable to seek file: %s\n", strerror(rc));
             free(*buf);
             return -1;
         }
